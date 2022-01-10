@@ -42,7 +42,7 @@ def findCodes(charProbability):
     Returns:
         dict: k - char, v - char codes
     """
-    charCodes = {x: bitarray() for x in charProbability}
+    charCodes = {x: "" for x in charProbability}
 
     buildCodes(charProbability, charCodes)
     return charCodes
@@ -55,11 +55,12 @@ def buildCodes(charProbability, charCodes):
     Returns:
         dict: k - char, v - char codes
     """
+    print(charCodes)
     leftDict, rightDict = divide(charProbability)
     for key, value in  leftDict.items():
-        charCodes[key].append(0)
+        charCodes[key] += str(0)
     for key, value in  rightDict.items():
-        charCodes[key].append(1)
+        charCodes[key] += str(1)
 
     if len(leftDict) > 1 or len(rightDict) > 1:
         if len(leftDict) > 1:
@@ -100,8 +101,45 @@ def divide(myDict):
     
     return leftDict, rightDict
 
-def encode():
-    pass
+def get_encoded_keys(codes : dict):
+    result = list()
+    for key in codes.keys():
+        result.append(key.encode())
+    return result
+
+def number_to_bitstr(value: int, str_len: int):
+    binstr: str = "{0:08b}".format(value)[-str_len:]
+    if len(binstr) < str_len:
+        binstr = '0'*(str_len-len(binstr)) + binstr
+    return binstr
+
+def get_header(codes : dict):
+    encoded_keys = get_encoded_keys(codes)
+    unique_chars_bitstr = number_to_bitstr(len(codes), 8)
+    result = unique_chars_bitstr
+    for code in codes.items():
+        code_bitstr = number_to_bitstr(ord(code[0]), 8*2)
+        code_length = number_to_bitstr(len(code[1]), 6)
+        result += code_bitstr + code_length + code[1]
+    return result
+
+def get_bitarray_dict(codes : dict):
+    result = {}
+    for code in codes.items():
+        result[code[0]] = bitarray(code[1])
+    return result
+
+def generate_compressed_file(codes : dict, read_path, result_path):
+    header = bitarray(get_header(codes))
+    codes_with_bits = get_bitarray_dict(codes)
+    with open(read_path, 'r') as read_file:
+        with open(result_path, 'ab') as result_file:
+            lines = read_file.readlines()
+            header.tofile(result_file)
+            for line in lines:
+                encoded_line = bitarray()
+                encoded_line.encode(codes_with_bits, line)
+                encoded_line.tofile(result_file)
 
 def decode():
     pass
@@ -110,7 +148,7 @@ def main():
     #testDict = {'a' : 0.25, 'b' : 0.20, 'c' : 0.15, 'd' : 0.15, 'e' : 0.10, 'f' : 0.10, 'g' : 0.05}
     #codes = findCodes(testDict)
 
-    file = readFile("abc.txt")
+    file = readFile("lalka.txt")
     print(file)
 
     prob = probability(file)
@@ -118,6 +156,8 @@ def main():
 
     codes = findCodes(prob)
     print(codes)
+
+    generate_compressed_file(codes, 'lalka.txt', 'result.bin')
 
 if __name__ == "__main__":
     main()
