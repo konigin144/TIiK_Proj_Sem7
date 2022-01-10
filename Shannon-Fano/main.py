@@ -55,7 +55,7 @@ def buildCodes(charProbability, charCodes):
     Returns:
         dict: k - char, v - char codes
     """
-    print(charCodes)
+    # print(charCodes)
     leftDict, rightDict = divide(charProbability)
     for key, value in  leftDict.items():
         charCodes[key] += str(0)
@@ -69,6 +69,7 @@ def buildCodes(charProbability, charCodes):
             charCodes = buildCodes(rightDict, charCodes)
     else:
         return charCodes
+    return charCodes
 
 def divide(myDict):
     """
@@ -132,7 +133,7 @@ def get_bitarray_dict(codes : dict):
 def generate_compressed_file(codes : dict, read_path, result_path):
     header = bitarray(get_header(codes))
     codes_with_bits = get_bitarray_dict(codes)
-    with open(read_path, 'r') as read_file:
+    with open(read_path, 'r', encoding='utf-8') as read_file:
         with open(result_path, 'ab') as result_file:
             lines = read_file.readlines()
             header.tofile(result_file)
@@ -148,16 +149,16 @@ def main():
     #testDict = {'a' : 0.25, 'b' : 0.20, 'c' : 0.15, 'd' : 0.15, 'e' : 0.10, 'f' : 0.10, 'g' : 0.05}
     #codes = findCodes(testDict)
 
-    file = readFile("lalka.txt")
-    print(file)
+    file = readFile("pancakes.txt")
+    # print(file)
 
     prob = probability(file)
-    print(prob)
+    # print(prob)
 
     codes = findCodes(prob)
-    print(codes)
+    # print(codes)
 
-    generate_compressed_file(codes, 'lalka.txt', 'result.bin')
+    generate_compressed_file(codes, 'pancakes.txt', 'result.bin')
 
 if __name__ == "__main__":
     main()
