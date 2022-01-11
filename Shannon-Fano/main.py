@@ -1,4 +1,5 @@
 import math, sys
+from bitarray.util import ba2int, int2ba
 from bitarray import bitarray
 
 def readFile(filename):
@@ -133,23 +134,76 @@ def get_bitarray_dict(codes : dict):
 def generate_compressed_file(codes : dict, read_path, result_path):
     header = bitarray(get_header(codes))
     codes_with_bits = get_bitarray_dict(codes)
-    with open(read_path, 'r', encoding='utf-8') as read_file:
-        with open(result_path, 'ab') as result_file:
-            lines = read_file.readlines()
-            header.tofile(result_file)
-            for line in lines:
-                encoded_line = bitarray()
-                encoded_line.encode(codes_with_bits, line)
-                encoded_line.tofile(result_file)
 
-def decode():
-    pass
+
+    with open(read_path, 'r', encoding='utf-8') as read_file:
+        with open(result_path, 'wb') as result_file:
+            lines = read_file.read()
+            encoded_file = bitarray()
+            encoded_file.encode(codes_with_bits, lines)
+
+            input_bitarray = bitarray()
+            input_bitarray.extend(bitarray('000'))
+            input_bitarray.extend(header)
+            input_bitarray.extend(encoded_file)
+
+            fill_size = input_bitarray.fill()
+            for i in range(3):
+                input_bitarray.pop(0)
+            fill_size_bits = number_to_bitstr(fill_size, 3)
+            new_input_bitarray = bitarray(fill_size_bits)
+            new_input_bitarray.extend(input_bitarray)
+            
+            new_input_bitarray.tofile(result_file)
+
+def encode_file(read_path, result_path):
+    input_bitarray = bitarray()
+    with open(read_path, 'rb') as read_file:
+       input_bitarray.fromfile(read_file)
+
+    fill_size_string = ""
+    for i in range(3):
+        fill_size_string += str(int(input_bitarray.pop(0)))
+    fill_size = int(fill_size_string, 2)
+    for i in range(fill_size):
+        input_bitarray.pop()
+
+    unique_chars_string = ""
+    for i in range(8):
+        unique_chars_string += str(int(input_bitarray.pop(0)))
+
+    unique_chars = ba2int(bitarray(unique_chars_string))
+    char_codes_dict = dict()
+    for i in range(unique_chars):
+        char_string = ""
+        for j in range(16):
+            char_string += str(int(input_bitarray.pop(0)))
+        char_bytes = int(char_string, 2).to_bytes(len(char_string) // 8, byteorder='big')
+        char = chr(int.from_bytes(char_bytes, byteorder='big', signed=False))
+
+        codelen_string = ""
+        for j in range(6):
+            codelen_string += str(int(input_bitarray.pop(0)))
+        codelen_bits = bitarray(codelen_string)
+        codelen = ba2int(codelen_bits)
+
+        code_string = ""
+        for j in range(codelen):
+            code_string += str(int(input_bitarray.pop(0)))
+        code = bitarray(code_string)
+
+        char_codes_dict[char] = code
+
+    decoded_text = ''.join(input_bitarray.iterdecode(char_codes_dict))
+
+    with open(result_path, 'w', encoding='utf-8') as write_file:
+        write_file.write(decoded_text)
 
 def main():
     #testDict = {'a' : 0.25, 'b' : 0.20, 'c' : 0.15, 'd' : 0.15, 'e' : 0.10, 'f' : 0.10, 'g' : 0.05}
     #codes = findCodes(testDict)
 
-    file = readFile("pancakes.txt")
+    file = readFile("lalka.txt")
     # print(file)
 
     prob = probability(file)
@@ -158,7 +212,11 @@ def main():
     codes = findCodes(prob)
     # print(codes)
 
-    generate_compressed_file(codes, 'pancakes.txt', 'result.bin')
+    generate_compressed_file(codes, 'lalka.txt', 'result2.bin')
+
+
+    encode_file("result2.bin", "result_decoded2.txt")
+
 
 if __name__ == "__main__":
     main()
