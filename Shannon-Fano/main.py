@@ -1,6 +1,7 @@
 import math, sys
 from bitarray.util import ba2int, int2ba
 from bitarray import bitarray
+import time
 
 def readFile(filename):
     """
@@ -156,7 +157,7 @@ def generate_compressed_file(codes : dict, read_path, result_path):
             
             new_input_bitarray.tofile(result_file)
 
-def encode_file(read_path, result_path):
+def generate_decompressed_file(read_path, result_path):
     input_bitarray = bitarray()
     with open(read_path, 'rb') as read_file:
        input_bitarray.fromfile(read_file)
@@ -200,22 +201,53 @@ def encode_file(read_path, result_path):
         write_file.write(decoded_text)
 
 def main():
-    #testDict = {'a' : 0.25, 'b' : 0.20, 'c' : 0.15, 'd' : 0.15, 'e' : 0.10, 'f' : 0.10, 'g' : 0.05}
-    #codes = findCodes(testDict)
+    running = True
+    path_question = 'Enter file name with extension: '
+    print('==== SHANNON-FANO DATA COMPRESSION PROGRAM ====\n')
+    while(running):
+        answer = input('Do you want to compress or decompress file? (c/d): ')
+        if (answer != 'c') and (answer != 'd'):
+            print('Enter correct answer!\n')
+        else:
+            if answer == 'c':
+                print('\n------------------------------------------------------\n')
+                file_to_read_path = input(path_question)
+                start = time.time()
+                file = readFile(file_to_read_path)
+                prob = probability(file)
+                codes = findCodes(prob)
+                filename = file_to_read_path.split('.')
+                result_name = filename[0]+'.bin'
+                generate_compressed_file(codes, file_to_read_path, result_name)
+                stop = time.time()
+                print (filename[0] + ' compressed sucessfully!')
+                print('Compression duration: ' + str(stop-start) + ' s')
+                print(result_name + ' has been created!')
+                print('\n------------------------------------------------------\n')
 
-    file = readFile("lalka.txt")
-    # print(file)
+            else:
+                print('\n------------------------------------------------------\n')
+                file_to_decompress_path = input(path_question)
+                start = time.time()
+                filename = file_to_decompress_path.split('.')
+                result_name = filename[0]+'2.txt'
+                generate_decompressed_file(file_to_decompress_path, result_name)
+                stop = time.time()
+                print (filename[0] + ' decompressed sucessfully!')
+                print('Decompression duration: ' + str(stop-start) + ' s')
+                print(result_name + ' has been created!')
+                print('\n------------------------------------------------------\n')
+            
+            while True:
+                answer = input('Do you want to close the program? (y/n): ')
+                if answer == 'y':
+                    running = False
+                    break
+                elif answer == 'n':
+                    break
+                else:
+                    print('Enter correct answer!\n')
 
-    prob = probability(file)
-    # print(prob)
-
-    codes = findCodes(prob)
-    # print(codes)
-
-    generate_compressed_file(codes, 'lalka.txt', 'result2.bin')
-
-
-    encode_file("result2.bin", "result_decoded2.txt")
 
 
 if __name__ == "__main__":
