@@ -1,0 +1,52 @@
+Gniazda sieciowe
+(ANG. INTERNET SOCKETS)
+Gniazda sieciowe to struktury, które są wykorzystywane podczas komunikacji pomiędzy warstwami aplikacji i transportową. Każdy proces i aplikacja, który próbuje połączyć się z siecią, musi powiązać swoje kanały transmisji danych wejściowych i wyjściowych poprzez utworzenie właściwego obiektu gniazda sieciowego.
+Obiekt gniazda sieciowego zawiera informacje o adresie IP, numerze portu i użytym protokole warstwy transportowej. Unikalna kombinacja tych trzech parametrów pozwala na zidentyfikowanie właściwego procesu, do którego wiadomość powinna być dostarczona.
+Numer portu może zostać przypisany automatycznie przez system operacyjny, ręcznie przez użytkownika lub może być mu przypisana wartość domyślna, właściwa pewnym popularnym aplikacjom. Numer portu jest 16-bitową liczbą całkowitą (0 - 65535).
+Niektóre popularne protokoły warstwy aplikacji używają domyślnych i publicznie znanych numerów porów. Na przykład, HTTP używa portu 80, HTTPS używa portu 443, SMTP portu 25, Telnet portu 23, natomiast FTP używa dwóch portów: 20 do transmisji danych i 21 kontroli transmisji. Lista domyślnych numerów portów jest zarządzana przez organizację Internet Assigned Numbers Authority.
+Proces powiązywania aplikacji i gniazda jest nazywany przypisaniem (ang. binding). Po zakończonym sukcesem przypisaniu, aplikacja nie musi zajmować się już zarządzaniem siecią, ponieważ wszystkie dalsze operacje leżą w gestii niższych warstw TCP/IP.
+Niektóre systemy operacyjne wymagają specjalnych uprawnień do przypisania numerów portów mniejszych niż 1024. Wiele aplikacji preferuje więc używanie portów o wyższych numerach, alokowanych dla nich na krótkie okresy czasu. Takie porty nazywane są portami dynamicznymi (ang. ephemeral ports).
+Użytkownik może sprecyzować numer portu w adresie URL. Na przykład, użycie poniższego URL sprawi, że przeglądarka będzie łączyć się ze stroną www przy użyciu portu 8080, zamiast domyślnego portu HTTP, o numerze 80:
+Warstwa Transportowa
+Warstwa transportowa otrzymuje wiadomości z warstwy aplikacji. Dzieli je na mniejsze pakiety, dodaje swój własny nagłówek i wysyła wiadomości dalej w dół do warstwy internetowej. Nagłówek zawiera szereg informacji kontrolnych, w szczególności numery portów nadawcy i odbiorcy.
+Numery portów są wykorzystywane przez warstwę transportową w czasie obsługiwania pakietów przychodzących z warstwy internetowej (czyli w czasie odbierania danych). Dzięki numerom portów jest możliwe określenie typu zawartości, który znajduje się w przychodzącej wiadomości. Na tej podstawie można wybrać właściwy protokół warstwy aplikacji, który powinien otrzymać wiadomość. Przykładowo pakiet, którego docelowy numer portu wynosi 25, będzie dostarczony do protokołu połączonego z tym portem, zwykle SMTP. W tym przypadku, protokół SMTP dostarczy dane do aplikacji email, która ich zażądała.
+TCP
+Najpopularniejszym protokołem warstwy transportowej jest TCP (ang. Transmission Control Protocol). Podczas transmisji danych, TCP zestawia połączenie pomiędzy komunikującymi się stronami (ang. connection oriented) przez zainicjowanie tzw. sesji (ang. session). TCP jest protokołem niezawodnym (ang. reliable), w którym odbiorca potwierdza otrzymanie każdej wiadomości (ang. acknowledge). Wszystkie wiadomości dostarczane są w takiej samej kolejności, w jakiej zostały wysłane (ang. ordering).
+Wszystkie cechy wymienione powyżej są zapewniane prze warstwę TCP. Oznacza to, że TCP może współdziałać z innymi, bardziej zawodnymi protokołami niższych warstw i nie powinno to afektować komunikacji z perspektywy warstwy aplikacji.
+Niezawodność TCP
+(ANG. RELIABILITY)
+W czasie wysyłanie danych, TCP zapewnia, że wszystkie wiadomości zostały dostarczone do miejsca przeznaczenia. Odbiorca testuje każdy otrzymany pakiet pod kątem błędów transmisji (poprzez wyliczanie sumy kontrolnej danych). Jeśli wiadomość jest poprawna, odbiorca wysyła potwierdzenie (ang. acknowledgement) do nadawcy. Jeśli nadawca nie otrzyma potwierdzenia w przeciągu określonego (konfigurowalnego) czasu, to ponownie wysyła zagubiony pakiet.
+Po kilku nieudanych próbach, TCP zakłada, że odbiorca jest nieosiągalny i informuje warstwę aplikacji, że transmisja zakończyła się niepowodzeniem.
+Uszeregowanie pakietów w TCP
+(ANG. ORDERING)
+Jedno z pól nagłówka TCP zawiera numer sekwencyjny wiadomości. Numer sekwencyjny jest zwiększany o jeden dla każdej wysłanej wiadomości. Podczas odbierania wiadomości, TCP układa pakiety we właściwej kolejności. Dzięki temu, warstwa aplikacji nie musi w ogóle zajmować się kolejnością przychodzących pakietów sieciowych.
+Nagłówek TCP
+Nagłówek TCP składa się z 20 lub więcej bajtów. Dokładna wielkość zależy od tego czy opcjonalne pole opcji (ang. options) jest używane. Maksymalna wielkość tego pola to 40 bajtów, więc maksymalna wielkość całego nagłówka to 60 bajtów.
+Sesja TCP
+W celu wymiany danych przy pomocy TCP, dwie aplikacje muszą najpierw zainicjować sesję (ang. session). TCP wymaga wymiany trzech wiadomości żeby utworzyć sesję:
+SYN - pierwsza aplikacja (klient) wysyła pakiet synchronize do serwera. Wiadomość zawiera losowy numer sekwencyjny, który został wybrany przez klienta.
+SYN-ACK - serwer odpowiada do klienta. Otrzymany numer sekwencyjny jest zwiększany o jeden i załączany do odpowiedzi jako numer potwierdzenia. Dodatkowo, odpowiedź zawiera inny numer sekwencyjny, losowo wybrany przez serwer.
+ACK - klient potwierdza otrzymanie odpowiedzi od serwera. Wiadomość zawiera oba otrzymane numery zwiększone o jeden.
+Kiedy transmisja pomiędzy klientem i serwerem zostanie zakończona, sesja powinna zostać zamknięta. Każda strona komunikacji może zakończyć trwającą sesję. Druga strona powinna odpowiedzieć na to, wysyłając odpowiednie potwierdzenie.
+Zastosowanie TCP
+TCP jest szeroko wykorzystywane w protokołach i aplikacjach, które wymagają wysokiej niezawodności. Nie jest tak szybkie jak UDP, ale -jeśli skonfigurowane poprawnie- TCP zapewnia wciąż dobrą szybkość transmisji połączoną z dobrą jakością przesyłanych danych.
+Można wymienić wiele protokołów warstwy aplikacji, które używane są głównie razem z TCP. Jednymi z najpopularniejszych są:
+HTTP, HTTPS
+FTP
+SMTP
+Telnet
+UDP
+Drugim popularnym protokołem używanym w warstwie transportowej jest UDP (ang. User Datagram Protocol lub Universal Datagram Protocol). Jest to prostszy protokół, w którym komunikacja odbywa się bez nawiązywania żadnego stałego połączenia pomiędzy aplikacjami. Wszystkie pakiety wysyłane są niezależnie od siebie.
+Dzięki swojej prostocie UDP jest szybsze niż TCP. Z drugiej jednak strony, nie zapewnia takiej niezawodności działania jak TCP. Przede wszystkim UDP nie gwarantuje, że wiadomości rzeczywiście dotarły do odbiorcy. UDP nie dostarcza pakietów w takiej samej kolejności, w jakiej zostały one wysłane. Ciężar uporządkowania otrzymywanych wiadomości i sprawdzenia czy nie nastąpiły błędy transmisji spoczywa na otrzymującej je aplikacji.
+Nagłówek UPD
+Nagłówek UPD składa się z 8 bajtów, jest więc znacznie krótszy niż odpowiadający mu nagłówek TCP.
+Zastosowanie UDP
+UDP jest preferowane jeśli przesyłane pakiety danych są nieistotne lub komunikacja musi odbywać się z wyjątkowo dużą prędkością. Przykładowo UDP jest używane do przesyłania zapytań DNS (z powodu bardzo dużej liczby zapytań kierowanych do relatywnie niewielu serwerów DNS). UDP jest używane również podczas transmisji audio i video, gdzie utrata pewnej liczby pakietów nie jest bardzo uciążliwa dla odbiorcy.
+Istnieje wiele protokołów warstwy aplikacji, które używają UDP, na przykład:
+DNS
+DHCP
+TFTP
+SNMP
+RIP
+VOIP
+

@@ -1,0 +1,1 @@
+Kompresją nazywamy zmniejszenie lub wyeliminowanie nadmiarowości z kodowania. Kompresja jest funkcją różnowartościową odwzorowującą zbiór wszystkich słów zbudowanych ze znaków pewnego alfabetu w zbiór ciągów binarnych
